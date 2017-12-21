@@ -159,7 +159,7 @@ bool spi_send_command(struct A1_chain *pChain, uint8_t cmd, uint8_t chip_id, uin
 	}
 	
 	tx_len = (2 + len + 1) & ~1;
-	//hexdump("send: TX", spi_tx, tx_len);
+	hexdump("send: TX", spi_tx, tx_len);
 
 	if(spi_send_data(ctx, spi_tx, tx_len))
 	{
@@ -197,7 +197,7 @@ bool spi_poll_result(struct A1_chain *pChain, uint8_t cmd, uint8_t chip_id, uint
 			applog(LOG_WARNING, "poll result: transfer fail !");
 			return false;
 		}
-		//hexdump("poll: RX", spi_rx, 2);
+		hexdump("poll: RX", spi_rx, 2);
 		if(spi_rx[0] == cmd)
 		{
 			index = 0;	
@@ -210,7 +210,7 @@ bool spi_poll_result(struct A1_chain *pChain, uint8_t cmd, uint8_t chip_id, uint
 				index = index + 2;
 			}while(index < len);
 
-			//hexdump("poll: RX", spi_rx + 2, len);
+			hexdump("poll: RX", spi_rx + 2, len);
 			memcpy(buff, spi_rx, len);
 			return true;
 		}
@@ -235,7 +235,7 @@ bool inno_cmd_reset(struct A1_chain *pChain, uint8_t chip_id)
 	}
 
 	memset(spi_rx, 0, sizeof(spi_rx));
-	if(!spi_poll_result(pChain, CMD_RESET, chip_id, spi_rx, 4))
+	if(!spi_poll_result(pChain, CMD_RESETBC_RESP, chip_id, spi_rx, 4))
 	{
 		applog(LOG_WARNING, "cmd reset: poll fail !");
 		return false;
@@ -276,10 +276,12 @@ bool inno_cmd_resetjob(struct A1_chain *pChain, uint8_t chip_id)
 		return false;
 	}
 */
-	spi_poll_result(pChain, CMD_RESET, chip_id, spi_rx, 4);
+	spi_poll_result(pChain, CMD_RESETBC_RESP, chip_id, spi_rx, 4);
 
 	if(inno_cmd_isBusy(pChain, chip_id) != WORK_FREE)
-	{	
+	{
+	
+	printf("dongfupang %s() %d\n", __func__, __LINE__);
 		return false;
 	}
 
@@ -388,7 +390,7 @@ bool inno_cmd_write_reg(struct A1_chain *pChain, uint8_t chip_id, uint8_t *reg)
 	spi_tx[REG_LENGTH+1] = (uint8_t)(clc_crc);
 
 	hexdump("write reg", spi_tx, REG_LENGTH+2);
-	if(!spi_write_data(pChain->spi_ctx, spi_tx, 16))
+	if(!spi_write_data(pChain->spi_ctx, spi_tx, 16 + 2))
 	{
 		applog(LOG_WARNING, "send command fail !");
 		return false;
@@ -541,8 +543,8 @@ uint8_t inno_cmd_isBusy(struct A1_chain *pChain, uint8_t chip_id)
 		applog(LOG_WARNING, "read chip %d busy status error", chip_id);
 		return -1;
 	}
-	//printf("[check busy] \r\n");
-	//hexdump("reg:", buffer, REG_LENGTH);
+	printf("[check busy] \r\n");
+	hexdump("reg:", buffer, REG_LENGTH);
 
 	if((buffer[9] & 0x01) == 1)
 	{
@@ -575,7 +577,7 @@ bool inno_cmd_write_job(struct A1_chain *pChain, uint8_t chip_id, uint8_t *job)
 	//printf("[write job] \r\n");
 	//hexdump("job:", spi_tx, JOB_LENGTH);
 
-	//usleep(100000);
+	usleep(100000);
 
 	if(inno_cmd_isBusy(pChain, chip_id) != WORK_BUSY)
 	{

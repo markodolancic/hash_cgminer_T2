@@ -1,8 +1,8 @@
 #ifndef _ASIC_INNO_
 #define _ASIC_INNO_
 
-#define ASIC_CHAIN_NUM                  4
-#define ASIC_CHIP_NUM                   72
+#define ASIC_CHAIN_NUM                  1
+#define ASIC_CHIP_NUM                   12
 
 #define ASIC_CHIP_A_BUCKET              (ASIC_CHAIN_NUM * ASIC_CHIP_NUM)
 #define ASIC_INNO_FAN_PWM0_DEVICE_NAME  ("/dev/pwmgen0.0")

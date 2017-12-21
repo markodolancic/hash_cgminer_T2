@@ -9775,6 +9775,40 @@ static void *hotplug_thread(void __maybe_unused *userdata)
 }
 #endif
 
+
+void signal_handler(int sig)
+{
+    int ret = access("/sys/class/gpio/gpio53", F_OK); //start
+    if(ret != -1)//file not exist
+            system("echo 1 > /sys/class/gpio/gpio53/value");
+
+    ret = access("/sys/class/gpio/gpio114", F_OK);  //reset
+    if(ret != -1)//file not exist
+            system("echo 1 > /sys/class/gpio/gpio114/value");
+
+	switch (sig) {
+	case SIGHUP:
+		applog(LOG_DEBUG, "SIGHUP received");
+		break;
+	case SIGINT:
+		applog(LOG_DEBUG, "SIGINT received, exiting");
+
+		exit(0);
+		break;
+	case SIGTERM:
+		applog(LOG_DEBUG, "SIGTERM received, exiting");
+
+		exit(0);
+		break;
+	case SIGSEGV:
+		applog(LOG_DEBUG, "SIGSEGV received, exiting");
+		exit(0);
+		break;
+	case SIGWINCH:
+		break;
+	}
+}
+
 static void probe_pools(void)
 {
 	int i;
@@ -9911,16 +9945,21 @@ int main(int argc, char *argv[])
 
 	snprintf(packagename, sizeof(packagename), "%s %s", PACKAGE, VERSION);
 
+#if 0
 	handler.sa_handler = &sighandler;
 	handler.sa_flags = 0;
 	sigemptyset(&handler.sa_mask);
 	sigaction(SIGTERM, &handler, &termhandler);
 	sigaction(SIGINT, &handler, &inthandler);
 	sigaction(SIGABRT, &handler, &abrthandler);
-#ifndef WIN32
-	signal(SIGPIPE, SIG_IGN);
 #else
-	timeBeginPeriod(1);
+
+	signal(SIGHUP, signal_handler);
+	signal(SIGINT, signal_handler);
+	signal(SIGTERM, signal_handler);
+	signal(SIGSEGV, signal_handler);
+	signal(SIGWINCH, signal_handler);
+
 #endif
 	opt_kernel_path = alloca(PATH_MAX);
 	strcpy(opt_kernel_path, CGMINER_PREFIX);

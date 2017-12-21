@@ -262,6 +262,7 @@ void inno_fan_temp_init(INNO_FAN_CTRL_T *fan_ctrl, int chain_id)
 
 void inno_fan_pwm_set(INNO_FAN_CTRL_T *fan_ctrl, int duty)
 {
+return;
     int fd = 0;
     int duty_driver = 0;
 

@@ -187,7 +187,7 @@ static bool detect_A1_chain(void)
 
 	for(i = 0; i < ASIC_CHAIN_NUM; i++)
 	{
-		cfg[i].bus     = i;
+		cfg[i].bus     = i + 1;
 		cfg[i].cs_line = 0;
 		cfg[i].mode    = SPI_MODE_1;
 		cfg[i].speed   = DEFAULT_SPI_SPEED;
@@ -207,23 +207,43 @@ static bool detect_A1_chain(void)
 		//spi[i]->plug  = SPI_PIN_PLUG[i];
 		//spi[i]->led   = SPI_PIN_LED[i];
 		
-
+#if 0
 		asic_gpio_init(spi[i]->power_en, 0);
 		asic_gpio_init(spi[i]->start_en, 0);
 		asic_gpio_init(spi[i]->reset, 0);
+#else
+	    int ret = access("/sys/class/gpio/gpio53", F_OK); //start
+        if(ret == -1)//file not exist
+                system("echo 53 > /sys/class/gpio/export");
+
+        ret = access("/sys/class/gpio/gpio114", F_OK);  //reset
+        if(ret == -1)//file not exist
+                system("echo 114 > /sys/class/gpio/export");
+#endif
 		//asic_gpio_init(spi[i]->plug, 0);
 		//asic_gpio_init(spi[i]->led, 0);
 	}
 
 	for(i = 0; i < ASIC_CHAIN_NUM; i++)
 	{
+#if 0
 		asic_gpio_write(spi[i]->power_en, 1);
 		asic_gpio_write(spi[i]->start_en, 1);
 		asic_gpio_write(spi[i]->reset, 1);
 		usleep(500000);
 		asic_gpio_write(spi[i]->reset, 0);
 		usleep(500000);
-		asic_gpio_write(spi[i]->reset, 1);	
+		asic_gpio_write(spi[i]->reset, 1);
+#else
+        system("echo out > /sys/class/gpio/gpio53/direction");
+        system("echo 0 > /sys/class/gpio/gpio53/value");
+        system("echo out > /sys/class/gpio/gpio114/direction");
+        system("echo 0 > /sys/class/gpio/gpio114/value");
+		usleep(500000);
+        system("echo 1 > /sys/class/gpio/gpio114/value");
+		usleep(500000);
+        system("echo 0 > /sys/class/gpio/gpio114/value");
+#endif
 	}
 
 	for(i = 0; i < ASIC_CHAIN_NUM; i++)
@@ -480,7 +500,7 @@ static int64_t A1_scanwork(struct thr_info *thr)
 			applog(LOG_WARNING, "%d: wrong chip_id %d", cid, chip_id);
 			continue;
 		}
-		if (job_id < 1 && job_id > 4) 
+		if (job_id < 1 && job_id > 15) 
 		{
 			applog(LOG_WARNING, "%d: chip %d: result has wrong ""job_id %d", cid, chip_id, job_id);
 			flush_spi(a1);
@@ -534,7 +554,7 @@ static int64_t A1_scanwork(struct thr_info *thr)
                 float    temp_f = 0.0f;
 
                 temp = 0x000003ff & ((reg[7] << 8) | reg[8]);
-                inno_fan_temp_add(&s_fan_ctrl, cid, temp, false);
+                //inno_fan_temp_add(&s_fan_ctrl, cid, temp, false);
             }
 
 			uint8_t qstate = reg[9] & 0x01;
@@ -571,7 +591,7 @@ static int64_t A1_scanwork(struct thr_info *thr)
 				break;
 			}
 		} 
-        inno_fan_speed_update(&s_fan_ctrl, cid);
+        //inno_fan_speed_update(&s_fan_ctrl, cid);
 	}
 
 	switch(cid){

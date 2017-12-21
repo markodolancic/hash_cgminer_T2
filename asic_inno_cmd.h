@@ -20,6 +20,8 @@
 #define CMD_POWER_ON		0x02
 #define CMD_POWER_OFF		0x06
 #define CMD_POWER_RESET 	0x0c
+#define CMD_RESETBC_RESP 	0x64
+
 
 #define ADDR_BROADCAST		0x00
 

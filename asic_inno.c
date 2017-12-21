@@ -239,13 +239,19 @@ void check_disabled_chips(struct A1_chain *a1, int pllnum)
 		//if the core in chain least than 630, reinit this chain 
 		if(a1->num_cores <= LEAST_CORE_ONE_CHAIN && chip->fail_reset < RESET_CHAIN_CNT)
 		{
+
+#if 0
 			chip->fail_reset++;
 			asic_gpio_write(ctx->reset, 0);
 			usleep(500000);
 			asic_gpio_write(ctx->reset, 1);	
-		
+#else
+			system("echo 1 > /sys/class/gpio/gpio114/value");
+			usleep(500000);
+ 			system("echo 0 > /sys/class/gpio/gpio114/value");
+#endif
 			a1->num_chips = chain_detect(a1, pllnum);
-			
+
 			inno_cmd_bist_fix(a1, ADDR_BROADCAST);
 		
 			for (i = 0; i < a1->num_active_chips; i++)
@@ -422,7 +428,7 @@ int chain_detect(struct A1_chain *a1, int idxpll)
 
 	set_spi_speed(1500000);
 
-	inno_cmd_reset(a1, ADDR_BROADCAST);
+	//inno_cmd_reset(a1, ADDR_BROADCAST);
 
 	usleep(1000);
 
