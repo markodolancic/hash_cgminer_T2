@@ -1,0 +1,1 @@
+# hash_cgminer_T2
